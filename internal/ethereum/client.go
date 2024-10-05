@@ -33,6 +33,14 @@ func (c *Client) SendTransaction(ctx context.Context, tx *types.Transaction) err
 	return c.ec.SendTransaction(ctx, tx)
 }
 
+func (c *Client) GetTransactionByHash(ctx context.Context, hash common.Hash) (*types.Transaction, bool, error) {
+	return c.ec.TransactionByHash(ctx, hash)
+}
+
+func (c *Client) TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
+	return c.ec.TransactionReceipt(ctx, txHash)
+}
+
 func (c *Client) Close() {
 	c.ec.Close()
 }

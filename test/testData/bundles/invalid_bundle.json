@@ -1,0 +1,6 @@
+{
+  "txs": ["invalid_transaction_hex"],
+  "blockNumber": "0x5BAD55",
+  "minTimestamp": 0,
+  "maxTimestamp": 0
+}

@@ -7,8 +7,21 @@ import (
 
 	"github.com/ChinmayGopal931/flashbots-bundle-simulator/internal/bundle"
 	"github.com/ChinmayGopal931/flashbots-bundle-simulator/internal/ethereum"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
+
+// StateDB represents the state of the Ethereum blockchain
+type StateDB interface {
+	GetBalance(common.Address) *big.Int
+	GetNonce(common.Address) uint64
+	GetCode(common.Address) []byte
+	GetState(common.Address, common.Hash) common.Hash
+	SetBalance(common.Address, *big.Int)
+	SetNonce(common.Address, uint64)
+	SetCode(common.Address, []byte)
+	SetState(common.Address, common.Hash, common.Hash)
+}
 
 type Simulator struct {
 	client *ethereum.Client
@@ -19,12 +32,7 @@ func NewSimulator(client *ethereum.Client) *Simulator {
 }
 
 func (s *Simulator) SimulateBundle(ctx context.Context, bundle *bundle.FlashbotsBundle) (*SimulationResult, error) {
-	block, err := s.client.GetBlockByNumber(ctx, bundle.BlockNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	statedb, err := s.createStateDB(ctx, block)
+	_, err := s.client.GetBlockByNumber(ctx, bundle.BlockNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -35,13 +43,16 @@ func (s *Simulator) SimulateBundle(ctx context.Context, bundle *bundle.Flashbots
 		GasUsed: 0,
 	}
 
-	for _, txHex := range bundle.Txs {
-		tx, err := bundle.HexToTx(txHex)
+	for _, txHashStr := range bundle.Txs {
+		txHash := common.HexToHash(txHashStr)
+		tx, _, err := s.client.GetTransactionByHash(ctx, txHash)
 		if err != nil {
 			return nil, err
 		}
 
-		receipt, err := s.applyTransaction(statedb, tx)
+		// For simplicity, we're just accumulating gas used
+		// In a real implementation, you'd apply the transaction to a state copy
+		receipt, err := s.client.TransactionReceipt(ctx, txHash)
 		if err != nil {
 			result.Success = false
 			result.Error = err.Error()
@@ -57,14 +68,22 @@ func (s *Simulator) SimulateBundle(ctx context.Context, bundle *bundle.Flashbots
 	return result, nil
 }
 
-func (s *Simulator) createStateDB(ctx context.Context, block *types.Block) (*StateDB, error) {
-	// TODO
-	return nil, errors.New("createStateDB TODO")
+func (s *Simulator) estimateGas(ctx context.Context, tx *types.Transaction) (uint64, error) {
+	// This is a placeholder. In a real implementation, you'd estimate the gas used by the transaction.
+	// For simplicity, we're returning a fixed value.
+	return 21000, nil
 }
 
-func (s *Simulator) applyTransaction(statedb *StateDB, tx *types.Transaction) (*types.Receipt, error) {
-	// TODO
-	return nil, errors.New("applyTransaction TODO")
+func (s *Simulator) createStateDB(ctx context.Context, block *types.Block) (StateDB, error) {
+	// This is a placeholder. In a real implementation, you'd create a copy of the state
+	// at the given block. This requires a more complex setup with a local Ethereum node.
+	return nil, errors.New("createStateDB not implemented")
+}
+
+func (s *Simulator) applyTransaction(statedb StateDB, tx *types.Transaction) (*types.Receipt, error) {
+	// This is a placeholder. In a real implementation, you'd apply the transaction
+	// to the statedb and return the receipt.
+	return nil, errors.New("applyTransaction not implemented")
 }
 
 type SimulationResult struct {

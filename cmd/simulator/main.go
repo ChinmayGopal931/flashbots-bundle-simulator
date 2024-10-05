@@ -18,18 +18,23 @@ func main() {
 		log.Fatal("Please provide a path to a bundle JSON file")
 	}
 
-	bundleJSON, err := ioutil.ReadFile(os.Args[1])
+	bundleFilePath := os.Args[1]
+	log.Printf("Reading bundle file: %s", bundleFilePath)
+
+	bundleJSON, err := ioutil.ReadFile(bundleFilePath)
 	if err != nil {
 		log.Fatalf("Failed to read bundle file: %v", err)
 	}
+	log.Printf("Bundle JSON content: %s", string(bundleJSON))
 
 	flashbotsBundle, err := bundle.ParseAndValidateBundle(bundleJSON)
 	if err != nil {
 		log.Fatalf("Failed to parse and validate bundle: %v", err)
 	}
+	log.Printf("Parsed bundle: %+v", flashbotsBundle)
 
-	// Connect to Goerli testnet
-	client, err := ethereum.NewClient("https://goerli.infura.io/v3/YOUR-PROJECT-ID")
+	// Connect to Sepolia testnet
+	client, err := ethereum.NewClient("https://sepolia.infura.io/v3/c978b74938064a98b67a150e4ade294d")
 	if err != nil {
 		log.Fatalf("Failed to connect to Ethereum client: %v", err)
 	}

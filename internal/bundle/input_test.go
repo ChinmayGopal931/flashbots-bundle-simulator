@@ -37,7 +37,7 @@ func TestParseAndValidateBundle(t *testing.T) {
 func TestValidateBundle(t *testing.T) {
 	t.Run("Empty Bundle", func(t *testing.T) {
 		bundle := &FlashbotsBundle{}
-		err := validateBundle(bundle)
+		err := ValidateBundle(bundle)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "must contain at least one transaction")
 	})
@@ -46,8 +46,35 @@ func TestValidateBundle(t *testing.T) {
 		bundle := &FlashbotsBundle{
 			Txs: []string{"0xf86d8202b28477359400825208944592d8f8d7b001e72cb26a73e4fa1806a51ac79d880de0b6b3a7640000802ba0f3514e458983a5b4644f99d88ae2e24489fe2b1aade6d86724bdb3fae5bbd5c9a03a309017057d36a3e9ea92626cd816dbf63bec6f29a43171a05b1a92eb790bea"},
 		}
-		err := validateBundle(bundle)
+		err := ValidateBundle(bundle)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "block number must be specified")
+	})
+
+	t.Run("Invalid Timestamp", func(t *testing.T) {
+		bundle := &FlashbotsBundle{
+			Txs:          []string{"0xf86d8202b28477359400825208944592d8f8d7b001e72cb26a73e4fa1806a51ac79d880de0b6b3a7640000802ba0f3514e458983a5b4644f99d88ae2e24489fe2b1aade6d86724bdb3fae5bbd5c9a03a309017057d36a3e9ea92626cd816dbf63bec6f29a43171a05b1a92eb790bea"},
+			BlockNumber:  big.NewInt(12345678),
+			MinTimestamp: 100,
+			MaxTimestamp: 50,
+		}
+		err := ValidateBundle(bundle)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "minTimestamp cannot be greater than maxTimestamp")
+	})
+}
+
+func TestHexToTx(t *testing.T) {
+	t.Run("Valid Transaction", func(t *testing.T) {
+		hexStr := "0xf86d8202b28477359400825208944592d8f8d7b001e72cb26a73e4fa1806a51ac79d880de0b6b3a7640000802ba0f3514e458983a5b4644f99d88ae2e24489fe2b1aade6d86724bdb3fae5bbd5c9a03a309017057d36a3e9ea92626cd816dbf63bec6f29a43171a05b1a92eb790bea"
+		tx, err := HexToTx(hexStr)
+		assert.NoError(t, err)
+		assert.NotNil(t, tx)
+	})
+
+	t.Run("Invalid Transaction", func(t *testing.T) {
+		hexStr := "invalid_tx_hex"
+		_, err := HexToTx(hexStr)
+		assert.Error(t, err)
 	})
 }
